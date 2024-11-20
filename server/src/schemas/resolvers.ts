@@ -33,21 +33,21 @@ interface Book {
     link: string;
 }
 
-interface AddBookArgs {
-    input: {
-        authors: string[];
-        description: string;
-        title: string;
-        bookId: string;
-        image: string;
-        link: string;
-    }
-}
+// interface AddBookArgs {
+//     input: {
+//         authors: string[];
+//         description: string;
+//         title: string;
+//         bookId: string;
+//         image: string;
+//         link: string;
+//     }
+// }
 
-interface SaveBookArgs {
-    userId: string;
-    bookId: string;
-}
+// interface SaveBookArgs {
+//     userId: string;
+//     bookId: string;
+// }
 
 interface RemoveBookArgs {
     userId: string;
