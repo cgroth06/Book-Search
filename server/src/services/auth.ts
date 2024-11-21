@@ -19,18 +19,16 @@ export const authenticateToken = ({ req }: { req: Request }) => {
   }
 
   if (!token) {
-    throw new AuthenticationError('No token provided');
+    return req;
   }
-
-  const secretKey = process.env.JWT_SECRET_KEY || '';
 
   try {
-    const decoded = jwt.verify(token, secretKey) as JwtPayload;
-    req.user = decoded;
+    const { data }: any = jwt.verify(token, process.env.JWT_SECRET_KEY || '', { maxAge: '2hr' });
+    req.user = data as JwtPayload;
   } catch (err) {
-    console.error(err);
-    throw new AuthenticationError('Invalid token');
+    console.log('Invalid token');
   }
+
   return req;
 };
 

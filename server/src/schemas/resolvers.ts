@@ -1,13 +1,12 @@
 import { User } from '../models/index.js';
 import { signToken, AuthenticationError } from '../services/auth.js';
-import bcrypt from 'bcrypt';
 
 interface User {
     _id: string;
-    username: string;
-    email: string;
-    password: string;
-    bookCount: number;
+    username: string ;
+    email: string | null;
+    password: string | null;
+    bookCount: number | null;
     savedBooks: Book[];
     isCorrectPassword(password: string): Promise<boolean>;
 }
@@ -21,6 +20,8 @@ interface AddUserArgs {
     email: string;
     password: string;
 }
+
+
 
 
 interface Book {
@@ -73,26 +74,15 @@ const resolvers = {
         },
     },
     Mutation: {
-        addUser: async (_: any, { username, email, password }: AddUserArgs) => {
-            try {
-                const existingUser = await User.findOne({ email });
-                if (existingUser) {
-                    throw new Error('User already exists');
-                }
-
-                const hashedPassword = await bcrypt.hash(password, 10);
-                const newUser = await User.create({ username, email, password: hashedPassword });
-
-                const token = signToken(newUser.username, newUser.email, newUser._id);
-
-                return { token, user: newUser };
-            } catch (error) {
-                console.error('Error during user creation:', error);
-                throw new Error('Failed to create user');
-            }
-        },
-        login: async (_parent: any, { username, password }: { username: string; password: string; }): Promise<{ token: string; user: User }> => {
-            const user = await User.findOne({ username }) as User;
+        addUser: async (_parent: any, args: any): Promise<{ token: string; user: User }> => {
+            const user = await User.create(args);
+            const token = signToken(user.username, user.email, user._id);
+                  
+            console.log(user)
+            return { token, user };
+          },
+        login: async (_parent: any, { email, password }: { email: string; password: string; }): Promise<{ token: string; user: User }> => {
+            const user = await User.findOne({ email }) as User;
 
             if (!user) {
                 throw new AuthenticationError('Incorrect credentials');
