@@ -17,9 +17,9 @@ interface UserArgs {
 }
 
 interface AddUserArgs {
-        username: string;
-        email: string;
-        password: string;
+    username: string;
+    email: string;
+    password: string;
 }
 
 
@@ -73,16 +73,24 @@ const resolvers = {
         },
     },
     Mutation: {
-        addUser: async (_parent: any, { username, email, password }: AddUserArgs) => {
-            
-      
-            const hashedPassword = await bcrypt.hash(password, 10);
-      
-            const user = await User.create({ username, email, password: hashedPassword, savedBooks: [] }) as User;
-      
-            const token = signToken(user.username, user.password, user._id);
-            return { token, user };
-          },
+        addUser: async (_: any, { username, email, password }: AddUserArgs) => {
+            try {
+                const existingUser = await User.findOne({ email });
+                if (existingUser) {
+                    throw new Error('User already exists');
+                }
+
+                const hashedPassword = await bcrypt.hash(password, 10);
+                const newUser = await User.create({ username, email, password: hashedPassword });
+
+                const token = signToken(newUser.username, newUser.email, newUser._id);
+
+                return { token, user: newUser };
+            } catch (error) {
+                console.error('Error during user creation:', error);
+                throw new Error('Failed to create user');
+            }
+        },
         login: async (_parent: any, { username, password }: { username: string; password: string; }): Promise<{ token: string; user: User }> => {
             const user = await User.findOne({ username }) as User;
 
@@ -107,11 +115,11 @@ const resolvers = {
                 },
                 { new: true, runValidators: true }
             );
-        
+
             if (!user) {
                 throw new Error('User not found');
             }
-        
+
             return user;
         },
         removeBook: async (_parent: unknown, { userId, bookId }: RemoveBookArgs) => {
