@@ -21,13 +21,6 @@ type Auth {
     user: User
 }
 
-input AddUserInput {
-    username: String!
-    email: String!
-    password: String!
-    savedBooks: [BookInput]
-}
-
 input BookInput {
     authors: [String]
     description: String

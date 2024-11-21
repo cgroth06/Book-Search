@@ -34,7 +34,7 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
 
     try {
       const { data } = await addUser({
-        variables: { input: userFormData}
+        variables: { username: userFormData.username, email: userFormData.email, password: userFormData.password,}
       })
 
       Auth.login(data.addUser.token);

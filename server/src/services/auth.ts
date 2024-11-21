@@ -19,7 +19,7 @@ export const authenticateToken = ({ req }: { req:Request } ) => {
   }
 
   if (!token) {
-    return req;
+    throw new AuthenticationError('No token provided 22')
   }
 
   const secretKey = process.env.JWT_SECRET_KEY || '';

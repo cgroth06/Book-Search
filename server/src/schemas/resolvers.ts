@@ -17,12 +17,11 @@ interface UserArgs {
 }
 
 interface AddUserArgs {
-    input: {
         username: string;
         email: string;
         password: string;
-    }
 }
+
 
 interface Book {
     bookId: string;
@@ -74,8 +73,8 @@ const resolvers = {
         },
     },
     Mutation: {
-        addUser: async (_parent: any, { input }: AddUserArgs) => {
-            const { username, email, password } = input;
+        addUser: async (_parent: any, { username, email, password }: AddUserArgs) => {
+            
       
             const hashedPassword = await bcrypt.hash(password, 10);
       
