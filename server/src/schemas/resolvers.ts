@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import { User } from '../models/index.js';
 import { signToken, AuthenticationError } from '../services/auth.js';
+import { BookDocument } from '../models/Book.js';
 
 interface User {
     _id: string;
@@ -11,18 +13,24 @@ interface User {
     isCorrectPassword(password: string): Promise<boolean>;
 }
 
+interface AddUserArgs {
+    input: {
+        username: string;
+        email: string;
+        password: string;
+    }
+}
+
 interface UserArgs {
     userId: string;
 }
 
-interface AddUserArgs {
+interface LoginUserArgs {
     username: string;
     email: string;
     password: string;
+
 }
-
-
-
 
 interface Book {
     bookId: string;
@@ -44,14 +52,14 @@ interface Book {
 //     }
 // }
 
-// interface SaveBookArgs {
-//     userId: string;
-//     bookId: string;
-// }
+interface AddBookArgs {
+    userId: mongoose.Types.ObjectId;
+    book: BookDocument;
+}
 
 interface RemoveBookArgs {
-    userId: string;
-    bookId: string;
+    userId: mongoose.Types.ObjectId;
+    book: BookDocument;
 }
 
 interface Context {
@@ -74,15 +82,16 @@ const resolvers = {
         },
     },
     Mutation: {
-        addUser: async (_parent: any, args: any): Promise<{ token: string; user: User }> => {
-            const user = await User.create(args);
+        addUser: async (_parent: any, { input }: AddUserArgs) => {
+            const user = await User.create({ ...input });
+
             const token = signToken(user.username, user.email, user._id);
                   
             console.log(user)
             return { token, user };
           },
-        login: async (_parent: any, { email, password }: { email: string; password: string; }): Promise<{ token: string; user: User }> => {
-            const user = await User.findOne({ email }) as User;
+        login: async (_parent: any, { email, password }: LoginUserArgs ) => {
+            const user = await User.findOne({ email });
 
             if (!user) {
                 throw new AuthenticationError('Incorrect credentials');
@@ -97,11 +106,11 @@ const resolvers = {
             const token = signToken(user.username, user.email, user._id);
             return { token, user };
         },
-        saveBook: async (_parent: unknown, { userId, input }: { userId: string; input: Book }) => {
+        saveBook: async (_parent: any, { userId, book }: AddBookArgs) => {
             const user = await User.findOneAndUpdate(
                 { _id: userId },
                 {
-                    $addToSet: { savedBooks: input },
+                    $addToSet: { savedBooks: book },
                 },
                 { new: true, runValidators: true }
             );
@@ -112,10 +121,10 @@ const resolvers = {
 
             return user;
         },
-        removeBook: async (_parent: unknown, { userId, bookId }: RemoveBookArgs) => {
+        removeBook: async (_parent: unknown, { book }: RemoveBookArgs, context: any) => {
             return await User.findOneAndUpdate(
-                { _id: userId },
-                { $pull: { savedBooks: { bookId } } },
+                { _id: context.user._id },
+                { $pull: { savedBooks:  book } },
                 { new: true }
             );
         },
